@@ -1,9 +1,16 @@
+"use client";
 import { RootState } from "@/fetures/store";
 import { logoutUser } from "@/fetures/user/userSlice";
+import Link from "next/link";
 import { useState } from "react";
+import { FaBars, FaHeart, FaSearch, FaShoppingCart } from "react-icons/fa";
+import { VscAccount } from "react-icons/vsc";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function Navbar() {
+interface NavbarProps {
+  onCartClick: () => void;
+}
+export default function Navbar({ onCartClick }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
 
@@ -25,21 +32,12 @@ export default function Navbar() {
     dispatch(logoutUser());
   };
 
-  const { data: categoriesData } = useGetCategoriesQuery({});
-  const categories = categoriesData?.data.categories;
-  const categoryOptions = categories
-    ? categories.map((category: ICategory) => ({
-        value: category.name,
-        label: category.name,
-      }))
-    : [];
-
   return (
     <nav className="flex flex-col md:flex-row items-center justify-between p-4 bg-gray-100 text-black">
       <div className="flex items-center space-x-4">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center ml-2 text-lg font-semibold">
           {/* <img src="/logo.png" alt="Logo" className="w-10 h-10" /> */}
-          <span className="ml-2 text-lg font-semibold">My App</span>
+          My app
         </Link>
         <div className="md:hidden flex items-center">
           <button className="p-2 rounded-md bg-gray-200" onClick={toggleMenu}>
@@ -58,18 +56,6 @@ export default function Navbar() {
           />
           <FaSearch className="absolute left-3 top-2 text-gray-500" />
         </div>
-
-        <Select
-          options={categoryOptions}
-          placeholder="Category"
-          className=" p-2 rounded-md bg-red-200"
-          styles={{
-            control: (provided) => ({
-              ...provided,
-              height: "40px",
-            }),
-          }}
-        />
       </div>
 
       <div className="flex items-center md:space-x-4">
@@ -95,13 +81,13 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {!user?.email && (
+          {!currentUser?.email && (
             <Link href="/login" className="mx-2">
               Login
             </Link>
           )}
 
-          {user?.role === "admin" && (
+          {currentUser?.role === "admin" && (
             <Link href="/dashboard" className="mx-2">
               Admin Dashboard
             </Link>

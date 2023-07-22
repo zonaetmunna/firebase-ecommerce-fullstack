@@ -3,6 +3,7 @@ interface User {
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
+  role: string;
   // Add any other properties you want to store for the user
 }
 
@@ -19,6 +20,7 @@ interface IProduct {
   image: string;
   rating: number;
   brand: string;
+  quantity?: number;
 }
 /* category interface */
 interface ICategory {
@@ -43,4 +45,31 @@ interface IOrder {
   orderDate: firebase.firestore.Timestamp; // Use Firestore Timestamp for date and time
   shippingAddress: string;
   status: "pending" | "shipped" | "delivered";
+}
+
+// cart
+interface ICartState {
+  cart: IProduct[];
+  shippingOption: string;
+  shippingCost: number;
+  discountCode: string;
+  subtotal: number;
+  total: number;
+  billingAddress: IBillingAddress;
+}
+
+interface IBillingAddress {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  city?: string;
+  zip?: number;
+}
+
+// ----------wishlist-------//
+interface IWishlistState {
+  wishlist: IProduct[];
 }

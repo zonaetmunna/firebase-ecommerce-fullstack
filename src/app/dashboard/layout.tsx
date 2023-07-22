@@ -9,13 +9,13 @@ export default function DashboardLayout({
 }) {
   return (
     <section className="flex">
-      <div className="flex flex-grow">
-        <DashboardSidebar />
-        <div>
-          <DashboardNavbar />
-          <div className="container mx-auto p-6">
-            <div>{children}</div>
-          </div>
+      <DashboardSidebar />
+
+      <div className="w-full flex flex-col">
+        <DashboardNavbar />
+
+        <div className="container mx-auto px-4 md:px-6 py-8 flex-grow">
+          {children}
         </div>
       </div>
     </section>
