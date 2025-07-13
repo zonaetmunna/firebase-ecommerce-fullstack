@@ -16,6 +16,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
 
   // user from redux
   const { currentUser } = useSelector((state: RootState) => state.auth);
+  console.log(currentUser);
   const { cart } = useSelector((state: RootState) => state.cart);
   const { wishlist } = useSelector((state: RootState) => state.wishlist);
   const dispatch = useDispatch();
@@ -28,8 +29,8 @@ export default function Navbar({ onCartClick }: NavbarProps) {
     setShowLinks(!showLinks); // Toggle the visibility of links
   };
 
-  const handleLogOut = () => {
-    dispatch(logoutUser());
+  const handleLogOut = async () => {
+    await dispatch(logoutUser());
   };
 
   return (
@@ -93,8 +94,8 @@ export default function Navbar({ onCartClick }: NavbarProps) {
             </Link>
           )}
 
-          {user?.role === "user" && (
-            <div className="">
+          {currentUser?.role === "user" && (
+            <div className="relative">
               <button
                 onClick={handleButtonClick}
                 className="mx-2 flex items-center text-gray-600 hover:text-gray-800 focus:outline-none"

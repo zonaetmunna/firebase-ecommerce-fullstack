@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.role == 'admin';
+    }
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth != null && 
+             request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if isOwner(userId);
+      // Admins can read all users but not write user data directly
+      allow read: if isAdmin();
+      // Admins can update user roles and status
+      allow update: if isAdmin() && 
+                   (resource.data.role != request.resource.data.role ||
+                    resource.data.isActive != request.resource.data.isActive);
+    }
+
+    // Products collection
+    match /products/{productId} {
+      // Public read access to products
+      allow read: if true;
+      // Admin write access
+      allow write: if isAdmin();
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      // Public read access to categories
+      allow read: if true;
+      // Admin write access
+      allow write: if isAdmin();
+    }
+
+    // Orders collection
+    match /orders/{orderId} {
+      // Users can read their own orders
+      allow read: if isAuthenticated() && 
+                 (isOwner(resource.data.userId) || isAdmin());
+      // Users can create orders
+      allow create: if isAuthenticated() && 
+                   isOwner(request.resource.data.userId);
+      // Admins can update orders (status, tracking, etc.)
+      allow update: if isAdmin();
+      // Admins can delete orders
+      allow delete: if isAdmin();
+    }
+
+    // Notifications collection (Admin only)
+    match /notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Settings collection (Admin only)
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Cart collection (if stored in Firestore)
+    match /carts/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Wishlist collection (if stored in Firestore)
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Public read access to reviews
+      allow read: if true;
+      // Users can create reviews for their own user ID
+      allow create: if isAuthenticated() && 
+                   isOwner(request.resource.data.userId);
+      // Users can update their own reviews
+      allow update: if isAuthenticated() && 
+                   isOwner(resource.data.userId);
+      // Admins can delete reviews
+      allow delete: if isAdmin();
+    }
+
+    // Audit logs (Admin only)
+    match /audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Backups (Admin only)
+    match /backups/{backupId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Coupons (Admin write, public read for valid coupons)
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Analytics data (Admin only)
+    match /analytics/{analyticsId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny all other documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// Storage rules for Firebase Storage
+// Add this to your Firebase Storage Rules
+/*
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Images can be read by anyone
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+    
+    // Product images
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+    
+    // Category images
+    match /categories/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+    
+    // User profile images
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Admin uploads
+    match /admin/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
+    }
+  }
+}
+*/ 

@@ -1,4 +1,3 @@
-import { IWishlistState } from "@/types/types";
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState: IWishlistState = {
@@ -14,12 +13,16 @@ export const wishlistSlice = createSlice({
     },
     removeFromWishlist: (state, action) => {
       state.wishlist = state.wishlist.filter(
-        (item) => item._id !== action.payload
+        (item: IProduct) => item.id !== action.payload
       );
+    },
+    clearWishlist: (state) => {
+      state.wishlist = [];
     },
   },
 });
 
-export const { addToWishlist, removeFromWishlist } = wishlistSlice.actions;
+export const { addToWishlist, removeFromWishlist, clearWishlist } =
+  wishlistSlice.actions;
 
 export default wishlistSlice.reducer;
