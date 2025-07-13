@@ -33,9 +33,14 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Local loading states for each action
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
+
   const router = useRouter();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  const { error } = useSelector((state: RootState) => state.auth);
 
   const {
     register,
@@ -48,60 +53,57 @@ export default function SignupPage() {
   const password = watch("password");
 
   const onSubmit = async (data: SignupFormData) => {
-    if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (!data.agreeToTerms) {
-      toast.error("Please accept the terms and conditions");
-      return;
-    }
-
+    setSignupLoading(true);
     try {
-      const signupData = {
+      const userData = {
         email: data.email,
         password: data.password,
-        displayName: `${data.firstName} ${data.lastName}`.trim(),
+        displayName: `${data.firstName} ${data.lastName}`,
       };
-
-      await dispatch(signup(signupData) as any);
+      await dispatch(signup(userData) as any).unwrap();
       toast.success("Account created successfully!");
       router.push("/");
     } catch (error: any) {
       toast.error(error.message || "Signup failed");
+    } finally {
+      setSignupLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
     try {
-      await dispatch(signInWithGoogle() as any);
+      await dispatch(signInWithGoogle() as any).unwrap();
       toast.success("Google signup successful!");
       router.push("/");
     } catch (error: any) {
-      toast.error("Google signup failed");
+      toast.error(error.message || "Google signup failed");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
   const handleFacebookSignup = async () => {
+    setFacebookLoading(true);
     try {
-      await dispatch(signInWithFacebook() as any);
+      await dispatch(signInWithFacebook() as any).unwrap();
       toast.success("Facebook signup successful!");
       router.push("/");
     } catch (error: any) {
-      toast.error("Facebook signup failed");
+      toast.error(error.message || "Facebook signup failed");
+    } finally {
+      setFacebookLoading(false);
     }
   };
 
+  const isAnyLoading = signupLoading || googleLoading || facebookLoading;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div>
           <div className="flex justify-center">
-            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
-              <FaUser className="text-white text-2xl" />
-            </div>
+            <FaUser className="h-12 w-12 text-blue-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
@@ -112,19 +114,12 @@ export default function SignupPage() {
               href="/login"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              sign in to your existing account
+              sign in to your account
             </Link>
           </p>
         </div>
 
-        {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
           <div className="space-y-4">
             {/* First Name & Last Name */}
             <div className="grid grid-cols-2 gap-4">
@@ -187,13 +182,13 @@ export default function SignupPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email address
+                Email Address
               </label>
               <input
                 {...register("email", {
                   required: "Email is required",
                   pattern: {
-                    value: /^\S+@\S+$/i,
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: "Invalid email address",
                   },
                 })}
@@ -322,15 +317,22 @@ export default function SignupPage() {
             )}
           </div>
 
+          {error && (
+            <div className="text-red-600 text-sm text-center">{error}</div>
+          )}
+
           {/* Submit Button */}
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isAnyLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin"></div>
+              {signupLoading ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                  Creating Account...
+                </div>
               ) : (
                 "Create Account"
               )}
@@ -354,19 +356,33 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={handleGoogleSignup}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                disabled={isAnyLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaGoogle className="h-5 w-5 text-red-500" />
-                <span className="ml-2">Google</span>
+                {googleLoading ? (
+                  <div className="w-4 h-4 border-t-2 border-gray-400 border-solid rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FaGoogle className="h-5 w-5 text-red-500" />
+                    <span className="ml-2">Google</span>
+                  </>
+                )}
               </button>
 
               <button
                 type="button"
                 onClick={handleFacebookSignup}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                disabled={isAnyLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaFacebook className="h-5 w-5 text-blue-600" />
-                <span className="ml-2">Facebook</span>
+                {facebookLoading ? (
+                  <div className="w-4 h-4 border-t-2 border-gray-400 border-solid rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FaFacebook className="h-5 w-5 text-blue-600" />
+                    <span className="ml-2">Facebook</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

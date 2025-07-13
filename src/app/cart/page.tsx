@@ -64,6 +64,8 @@ export default function Cart() {
                           src={item.image}
                           alt={item.name}
                           className="w-12 h-12 mr-4"
+                          width={100}
+                          height={100}
                         />
                         <div>
                           <h2 className="text-lg font-bold">{item.name}</h2>
@@ -77,13 +79,18 @@ export default function Cart() {
                         type="number"
                         value={item.quantity}
                         onChange={(e) =>
-                          handleQuantityChange(item.id, e.target.value)
+                          handleQuantityChange({
+                            id: item.id,
+                            quantity: Number(e.target.value),
+                          })
                         }
                         min={1}
                         className="w-16 border border-gray-400 rounded px-2 py-1"
                       />
                     </td>
-                    <td className="py-4 px-4">${item.price * item.quantity}</td>
+                    <td className="py-4 px-4">
+                      ${item.price * (item.quantity || 0)}
+                    </td>
                     <td className="py-4 px-4">
                       <button
                         onClick={() => handleRemoveFromCart(item.id)}

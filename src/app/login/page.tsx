@@ -26,9 +26,14 @@ export default function LoginPage() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  // Local loading states for each action
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
+
   const router = useRouter();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  const { error } = useSelector((state: RootState) => state.auth);
 
   const {
     register,
@@ -38,46 +43,55 @@ export default function LoginPage() {
   } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
+    setLoginLoading(true);
     try {
-      await dispatch(login(data) as any);
+      await dispatch(login(data) as any).unwrap();
       toast.success("Login successful!");
       router.push("/");
     } catch (error: any) {
       toast.error(error.message || "Login failed");
+    } finally {
+      setLoginLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
     try {
-      await dispatch(signInWithGoogle() as any);
+      await dispatch(signInWithGoogle() as any).unwrap();
       toast.success("Google login successful!");
       router.push("/");
     } catch (error: any) {
-      toast.error("Google login failed");
+      toast.error(error.message || "Google login failed");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
   const handleFacebookLogin = async () => {
+    setFacebookLoading(true);
     try {
-      await dispatch(signInWithFacebook() as any);
+      await dispatch(signInWithFacebook() as any).unwrap();
       toast.success("Facebook login successful!");
       router.push("/");
     } catch (error: any) {
-      toast.error("Facebook login failed");
+      toast.error(error.message || "Facebook login failed");
+    } finally {
+      setFacebookLoading(false);
     }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resetEmail.trim()) {
+    if (!resetEmail) {
       toast.error("Please enter your email address");
       return;
     }
 
     setResetLoading(true);
     try {
-      await dispatch(resetPassword(resetEmail) as any);
-      toast.success("Password reset email sent! Check your inbox.");
+      await dispatch(resetPassword(resetEmail) as any).unwrap();
+      toast.success("Password reset email sent!");
       setIsResetMode(false);
       setResetEmail("");
     } catch (error: any) {
@@ -87,53 +101,59 @@ export default function LoginPage() {
     }
   };
 
+  const isAnyLoading =
+    loginLoading || googleLoading || facebookLoading || resetLoading;
+
   if (isResetMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Reset Password
+              Reset your password
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Enter your email address and we&apos;ll send you a reset link
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
             </p>
           </div>
-
           <form className="mt-8 space-y-6" onSubmit={handlePasswordReset}>
             <div>
-              <label
-                htmlFor="reset-email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="reset-email" className="sr-only">
                 Email address
               </label>
               <input
                 id="reset-email"
+                name="email"
                 type="email"
                 required
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your email"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
               />
             </div>
-
             <div className="flex space-x-4">
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {resetLoading ? "Sending..." : "Send Reset Link"}
+                {resetLoading ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                    Sending...
+                  </div>
+                ) : (
+                  "Send Reset Email"
+                )}
               </button>
-
               <button
                 type="button"
                 onClick={() => setIsResetMode(false)}
                 className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Cancel
+                Back to Login
               </button>
             </div>
           </form>
@@ -239,10 +259,17 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              disabled={isAnyLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loginLoading ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                  Signing in...
+                </div>
+              ) : (
+                "Sign in"
+              )}
             </button>
           </div>
 
@@ -262,21 +289,33 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                disabled={isAnyLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaGoogle className="h-5 w-5 text-red-500" />
-                <span className="ml-2">Google</span>
+                {googleLoading ? (
+                  <div className="w-4 h-4 border-t-2 border-gray-400 border-solid rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FaGoogle className="h-5 w-5 text-red-500" />
+                    <span className="ml-2">Google</span>
+                  </>
+                )}
               </button>
 
               <button
                 type="button"
                 onClick={handleFacebookLogin}
-                disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                disabled={isAnyLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaFacebook className="h-5 w-5 text-blue-600" />
-                <span className="ml-2">Facebook</span>
+                {facebookLoading ? (
+                  <div className="w-4 h-4 border-t-2 border-gray-400 border-solid rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FaFacebook className="h-5 w-5 text-blue-600" />
+                    <span className="ml-2">Facebook</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -5,8 +5,8 @@ interface User {
   photoURL: string | null;
   role: "admin" | "user";
   isActive: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 /* Admin-specific interfaces */
@@ -39,7 +39,8 @@ interface IUserManagement {
   email: string | null;
   role: "admin" | "user";
   isActive: boolean;
-  createdAt: any;
+  createdAt: string | null;
+  updatedAt?: string | null;
   totalOrders: number;
   totalSpent: number;
 }
@@ -62,8 +63,8 @@ interface IProduct {
   featured?: boolean;
   tags?: string[];
   specifications?: { [key: string]: string };
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 /* category interface */
@@ -74,8 +75,8 @@ interface ICategory {
   image: string;
   productCount?: number;
   isActive: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 /* brand interface */
@@ -85,8 +86,8 @@ interface IBrand {
   description: string;
   logo: string;
   isActive: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 /* Enhanced order interface */
@@ -99,7 +100,7 @@ interface IOrder {
   subtotal: number;
   shippingCost: number;
   tax: number;
-  orderDate: any;
+  orderDate: string | null;
   orderStatus: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
   paymentMethod: "credit_card" | "paypal" | "stripe";
@@ -107,8 +108,8 @@ interface IOrder {
   billingAddress: IBillingAddress;
   trackingNumber?: string;
   notes?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 interface IOrderItem {
@@ -140,8 +141,8 @@ interface IReview {
   userName: string;
   rating: number;
   comment: string;
-  createdAt: any;
-  updatedAt?: any;
+  createdAt: string | null;
+  updatedAt?: string | null;
 }
 
 /* Notification interface */
@@ -151,7 +152,7 @@ interface INotification {
   title: string;
   message: string;
   isRead: boolean;
-  createdAt: any;
+  createdAt: string | null;
 }
 
 // cart
@@ -313,7 +314,7 @@ interface IInventoryItem {
   currentStock: number;
   reorderLevel: number;
   status: "in_stock" | "low_stock" | "out_of_stock";
-  lastRestocked: any;
+  lastRestocked: string | null;
 }
 
 /* Coupon types */
@@ -326,10 +327,10 @@ interface ICoupon {
   maxUsage: number;
   currentUsage: number;
   isActive: boolean;
-  validFrom: any;
-  validUntil: any;
-  createdAt: any;
-  updatedAt: any;
+  validFrom: string | null;
+  validUntil: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 /* Backup types */
@@ -338,7 +339,7 @@ interface IBackup {
   type: "full" | "partial";
   status: "pending" | "completed" | "failed";
   size: string;
-  createdAt: any;
+  createdAt: string | null;
   downloadUrl?: string;
 }
 
@@ -352,5 +353,5 @@ interface IAuditLog {
   details: string;
   ipAddress: string;
   userAgent: string;
-  createdAt: any;
+  createdAt: string | null;
 }

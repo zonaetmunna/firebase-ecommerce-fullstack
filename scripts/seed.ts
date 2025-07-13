@@ -43,7 +43,7 @@ function checkFirebaseConfig() {
     );
     console.error("4. Enable Authentication, Firestore, and Storage");
     console.error("5. Get your Firebase config from Project Settings");
-    console.error("\n📖 See SETUP_GUIDE.md for detailed instructions");
+    console.error("\n📖 See README.md for detailed instructions");
     return false;
   }
 
@@ -55,8 +55,14 @@ let db: any;
 let auth: any;
 
 if (checkFirebaseConfig()) {
-  db = getFirestore(firebaseApp);
-  auth = getAuth(firebaseApp);
+  try {
+    db = getFirestore(firebaseApp);
+    auth = getAuth(firebaseApp);
+    console.log("✅ Firebase services initialized successfully");
+  } catch (error) {
+    console.error("❌ Error initializing Firebase services:", error);
+    process.exit(1);
+  }
 } else {
   process.exit(1);
 }
@@ -247,83 +253,55 @@ const orders = [
     subtotal: 999,
     shippingCost: 0,
     tax: 79.92,
-    orderDate: serverTimestamp(),
-    orderStatus: "processing" as const,
-    paymentStatus: "completed" as const,
-    paymentMethod: "credit_card" as const,
+    paymentMethod: "card",
+    paymentStatus: "paid",
+    orderStatus: "processing",
     shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
+      street: "123 Main St",
       city: "New York",
       state: "NY",
       zipCode: "10001",
       country: "USA",
-      phone: "+1234567890",
     },
-    billingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      address: "123 Main St",
-      city: "New York",
-      country: "USA",
-      zip: 10001,
-    },
-    trackingNumber: "TRK123456789",
-    notes: "Handle with care",
   },
 ];
 
 // Sample notifications
 const notifications = [
   {
-    type: "order" as const,
+    title: "Welcome to Firebase Commerce!",
+    message:
+      "Thank you for setting up your store. Start adding products and managing your inventory.",
+    type: "info",
+    isRead: false,
+    userId: "admin",
+  },
+  {
     title: "New Order Received",
-    message: "Order #12345 has been placed by john@example.com",
+    message: "You have received a new order #12345. Please process it soon.",
+    type: "success",
     isRead: false,
-  },
-  {
-    type: "product" as const,
-    title: "Low Stock Alert",
-    message: "iPhone 15 Pro is running low on stock (5 items remaining)",
-    isRead: false,
-  },
-  {
-    type: "user" as const,
-    title: "New User Registration",
-    message: "A new user has registered: jane@example.com",
-    isRead: true,
-  },
-  {
-    type: "system" as const,
-    title: "System Update",
-    message: "The system has been updated to version 2.1.0",
-    isRead: true,
+    userId: "admin",
   },
 ];
 
-// System settings
+// Sample system settings
 const systemSettings = {
-  siteName: "Firebase Commerce",
-  siteDescription: "Complete ecommerce solution with Firebase",
-  siteEmail: "admin@firebasecommerce.com",
-  sitePhone: "+1 (555) 123-4567",
-  siteAddress: "123 Commerce Street, City, State 12345",
+  storeName: "Firebase Commerce",
+  storeDescription: "Your modern e-commerce solution",
   currency: "USD",
   taxRate: 0.08,
-  shippingRate: 9.99,
-  featuredProductsLimit: 8,
-  allowUserRegistration: true,
-  requireEmailVerification: false,
+  shippingCost: 10,
+  freeShippingThreshold: 50,
+  adminEmail: "admin@firebasecommerce.com",
+  supportEmail: "support@firebasecommerce.com",
   maintenanceMode: false,
 };
 
 // Seed function
 export async function seedFirebase() {
   try {
-    console.log("Starting Firebase seeding...");
+    console.log("🌱 Starting Firebase seeding...");
 
     // 1. Create admin user
     try {
@@ -352,72 +330,118 @@ export async function seedFirebase() {
       if (error.code === "auth/email-already-in-use") {
         console.log("ℹ️  Admin user already exists");
       } else {
-        console.error("❌ Error creating admin user:", error);
+        console.error("❌ Error creating admin user:", error.message);
       }
     }
 
     // 2. Seed categories
     console.log("🌱 Seeding categories...");
     for (const category of categories) {
-      await addDoc(collection(db, "categories"), {
-        ...category,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
+      try {
+        await addDoc(collection(db, "categories"), {
+          ...category,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        console.log(`   ✅ Added category: ${category.name}`);
+      } catch (error: any) {
+        console.error(
+          `   ❌ Error adding category ${category.name}:`,
+          error.message
+        );
+      }
     }
     console.log("✅ Categories seeded successfully");
 
     // 3. Seed products
     console.log("🌱 Seeding products...");
     for (const product of products) {
-      await addDoc(collection(db, "products"), {
-        ...product,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
+      try {
+        await addDoc(collection(db, "products"), {
+          ...product,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        console.log(`   ✅ Added product: ${product.name}`);
+      } catch (error: any) {
+        console.error(
+          `   ❌ Error adding product ${product.name}:`,
+          error.message
+        );
+      }
     }
     console.log("✅ Products seeded successfully");
 
     // 4. Seed orders
     console.log("🌱 Seeding orders...");
     for (const order of orders) {
-      await addDoc(collection(db, "orders"), {
-        ...order,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
+      try {
+        await addDoc(collection(db, "orders"), {
+          ...order,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        console.log(`   ✅ Added order for: ${order.userEmail}`);
+      } catch (error: any) {
+        console.error(
+          `   ❌ Error adding order for ${order.userEmail}:`,
+          error.message
+        );
+      }
     }
     console.log("✅ Orders seeded successfully");
 
     // 5. Seed notifications
     console.log("🌱 Seeding notifications...");
     for (const notification of notifications) {
-      await addDoc(collection(db, "notifications"), {
-        ...notification,
-        createdAt: serverTimestamp(),
-      });
+      try {
+        await addDoc(collection(db, "notifications"), {
+          ...notification,
+          createdAt: serverTimestamp(),
+        });
+        console.log(`   ✅ Added notification: ${notification.title}`);
+      } catch (error: any) {
+        console.error(
+          `   ❌ Error adding notification ${notification.title}:`,
+          error.message
+        );
+      }
     }
     console.log("✅ Notifications seeded successfully");
 
     // 6. Seed system settings
     console.log("🌱 Seeding system settings...");
-    await setDoc(doc(db, "settings", "system"), {
-      ...systemSettings,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    console.log("✅ System settings seeded successfully");
+    try {
+      await setDoc(doc(db, "settings", "system"), {
+        ...systemSettings,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      console.log("✅ System settings seeded successfully");
+    } catch (error: any) {
+      console.error("❌ Error seeding system settings:", error.message);
+    }
 
-    console.log("🎉 Firebase seeding completed successfully!");
+    console.log("\n🎉 Firebase seeding completed successfully!");
     console.log("📧 Admin credentials:");
     console.log("   Email: admin@firebasecommerce.com");
     console.log("   Password: admin123");
-  } catch (error) {
-    console.error("❌ Error seeding Firebase:", error);
+    console.log("\n🚀 You can now start your application!");
+  } catch (error: any) {
+    console.error("❌ Error seeding Firebase:", error.message);
+    process.exit(1);
   }
 }
 
 // Run seed if called directly
 if (require.main === module) {
-  seedFirebase();
+  seedFirebase()
+    .then(() => {
+      console.log("🏁 Seeding process completed");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("💥 Seeding process failed:", error);
+      process.exit(1);
+    });
 }

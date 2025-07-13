@@ -31,6 +31,27 @@ const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
+// Helper function to serialize Firebase Timestamp to ISO string
+const serializeTimestamp = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  if (timestamp?.toDate) {
+    return timestamp.toDate().toISOString();
+  }
+  if (timestamp instanceof Date) {
+    return timestamp.toISOString();
+  }
+  return null;
+};
+
+// Helper function to serialize user data
+const serializeUserData = (userData: any): AuthUser | IUserManagement => {
+  return {
+    ...userData,
+    createdAt: serializeTimestamp(userData.createdAt),
+    updatedAt: serializeTimestamp(userData.updatedAt),
+  };
+};
+
 export interface AuthUser {
   uid: string;
   email: string | null;
@@ -38,8 +59,8 @@ export interface AuthUser {
   photoURL: string | null;
   role: "admin" | "user";
   isActive: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 interface UserState {
@@ -112,10 +133,11 @@ const getUserDocument = async (uid: string): Promise<AuthUser | null> => {
     const snapshot = await getDoc(userRef);
 
     if (snapshot.exists()) {
-      return {
+      const userData = snapshot.data();
+      return serializeUserData({
         uid,
-        ...snapshot.data(),
-      } as AuthUser;
+        ...userData,
+      }) as AuthUser;
     }
 
     return null;
@@ -260,16 +282,18 @@ export const getAllUsers = createAsyncThunk(
       const users: IUserManagement[] = [];
       snapshot.forEach((doc) => {
         const userData = doc.data();
-        users.push({
+        const serializedUser = serializeUserData({
           id: doc.id,
           displayName: userData.displayName || null,
           email: userData.email || null,
           role: userData.role || "user",
           isActive: userData.isActive || true,
           createdAt: userData.createdAt,
+          updatedAt: userData.updatedAt,
           totalOrders: userData.totalOrders || 0,
           totalSpent: userData.totalSpent || 0,
         });
+        users.push(serializedUser as IUserManagement);
       });
 
       return users;
@@ -360,7 +384,23 @@ export const getUserStats = createAsyncThunk(
         if (userData.role === "admin") adminUsers++;
 
         if (userData.createdAt) {
-          const createdDate = userData.createdAt.toDate();
+          let createdDate: Date;
+
+          // Handle Firebase Timestamp
+          if (userData.createdAt.toDate) {
+            createdDate = userData.createdAt.toDate();
+          }
+          // Handle serialized ISO string
+          else if (typeof userData.createdAt === "string") {
+            createdDate = new Date(userData.createdAt);
+          }
+          // Handle Date object
+          else if (userData.createdAt instanceof Date) {
+            createdDate = userData.createdAt;
+          } else {
+            return; // Skip if we can't parse the date
+          }
+
           if (
             createdDate.getMonth() === currentMonth &&
             createdDate.getFullYear() === currentYear
