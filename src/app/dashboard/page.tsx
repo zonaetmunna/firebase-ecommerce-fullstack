@@ -274,8 +274,9 @@ export default function DashboardPage() {
                   </p>
                   <p className="text-sm text-gray-600">{activity.message}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {activity.createdAt && activity.createdAt.toDate
-                      ? activity.createdAt.toDate().toLocaleString()
+                    {activity.createdAt &&
+                    new Date(activity.createdAt).toLocaleString()
+                      ? new Date(activity.createdAt).toLocaleString()
                       : "Just now"}
                   </p>
                 </div>

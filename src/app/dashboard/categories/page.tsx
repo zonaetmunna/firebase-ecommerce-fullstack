@@ -380,9 +380,7 @@ export default function AdminCategoriesPage() {
                   {category.createdAt && (
                     <>
                       Created{" "}
-                      {new Date(
-                        category.createdAt.toDate()
-                      ).toLocaleDateString()}
+                      {new Date(category.createdAt).toLocaleDateString()}
                     </>
                   )}
                 </div>

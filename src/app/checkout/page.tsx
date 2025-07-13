@@ -198,12 +198,7 @@ export default function CheckoutPage() {
           orderStatus: "pending" as const,
         };
 
-        const orderId = await createOrder(orderData);
-
-        // Update product stock
-        for (const item of cart) {
-          await updateProductStock(item.id, item.quantity || 1);
-        }
+        const orderId = await createOrder(orderData as any);
 
         // Clear cart
         dispatch(clearCart());

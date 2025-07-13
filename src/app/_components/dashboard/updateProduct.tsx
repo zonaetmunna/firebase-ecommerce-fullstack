@@ -1,6 +1,6 @@
 "use client";
 import { Dialog } from "@headlessui/react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import Select from "react-select";
 
 interface UpdateProductProps {
@@ -8,6 +8,7 @@ interface UpdateProductProps {
   onClose: () => void;
   onUpdate: (productId: string, updatedProductData: Partial<IProduct>) => void;
 }
+
 export default function UpdateProduct({
   product,
   onClose,
@@ -17,17 +18,41 @@ export default function UpdateProduct({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<Partial<IProduct>>();
 
+  // Sample options - replace with your actual options
+  const categoryOptions = [
+    { value: "electronics", label: "Electronics" },
+    { value: "clothing", label: "Clothing" },
+    { value: "books", label: "Books" },
+    { value: "home", label: "Home & Garden" },
+  ];
+
+  const colorOptions = [
+    { value: "red", label: "Red" },
+    { value: "blue", label: "Blue" },
+    { value: "green", label: "Green" },
+    { value: "black", label: "Black" },
+    { value: "white", label: "White" },
+  ];
+
+  const sizeOptions = [
+    { value: "xs", label: "XS" },
+    { value: "s", label: "S" },
+    { value: "m", label: "M" },
+    { value: "l", label: "L" },
+    { value: "xl", label: "XL" },
+  ];
+
   const onSubmit = (formData: Partial<IProduct>) => {
-    // Call the onUpdate function with the product ID and updated product data
     if (product) {
       onUpdate(product.id, formData);
-      // Reset the form after submission
       reset();
     }
   };
+
   return (
     <Dialog open={!!product} onClose={onClose} className="fixed inset-0 z-10">
       <div className="flex items-center justify-center min-h-screen p-4">
@@ -57,6 +82,7 @@ export default function UpdateProduct({
                   </span>
                 )}
               </div>
+
               {/* price */}
               <div className="mb-4">
                 <label htmlFor="price" className="block text-sm font-medium">
@@ -79,6 +105,7 @@ export default function UpdateProduct({
                   </span>
                 )}
               </div>
+
               {/* description */}
               <div className="mb-4">
                 <label
@@ -99,42 +126,82 @@ export default function UpdateProduct({
                   </span>
                 )}
               </div>
+
               {/* category */}
               <div className="mb-4">
                 <label htmlFor="category" className="block text-sm font-medium">
                   Category:
                 </label>
-                <Select
-                  defaultValue={{
-                    value: product.category,
-                    label: product.category,
-                  }}
-                  {...register("category")}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                <Controller
+                  name="category"
+                  control={control}
+                  defaultValue={product.category}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={categoryOptions}
+                      value={categoryOptions.find(
+                        (option) => option.value === field.value
+                      )}
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                      className="mt-1"
+                    />
+                  )}
                 />
               </div>
+
               {/* color */}
               <div className="mb-4">
                 <label htmlFor="color" className="block text-sm font-medium">
                   Color:
                 </label>
-                <Select
-                  defaultValue={{ value: product.color, label: product.color }}
-                  {...register("color")}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                <Controller
+                  name="color"
+                  control={control}
+                  defaultValue={product.color}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={colorOptions}
+                      value={colorOptions.find(
+                        (option) => option.value === field.value
+                      )}
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                      className="mt-1"
+                    />
+                  )}
                 />
               </div>
+
               {/* size */}
               <div className="mb-4">
                 <label htmlFor="size" className="block text-sm font-medium">
                   Size:
                 </label>
-                <Select
-                  defaultValue={{ value: product.size, label: product.size }}
-                  {...register("size")}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                <Controller
+                  name="size"
+                  control={control}
+                  defaultValue={product.size}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={sizeOptions}
+                      value={sizeOptions.find(
+                        (option) => option.value === field.value
+                      )}
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                      className="mt-1"
+                    />
+                  )}
                 />
               </div>
+
               {/* stock */}
               <div className="mb-4">
                 <label htmlFor="stock" className="block text-sm font-medium">
@@ -157,6 +224,7 @@ export default function UpdateProduct({
                   </span>
                 )}
               </div>
+
               {/* image */}
               <div className="mb-4">
                 <label htmlFor="image" className="block text-sm font-medium">
@@ -174,6 +242,7 @@ export default function UpdateProduct({
                   </span>
                 )}
               </div>
+
               {/* brand */}
               <div className="mb-4">
                 <label htmlFor="brand" className="block text-sm font-medium">
@@ -215,5 +284,3 @@ export default function UpdateProduct({
     </Dialog>
   );
 }
-
-/* update product */

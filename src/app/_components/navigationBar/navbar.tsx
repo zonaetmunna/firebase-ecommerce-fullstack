@@ -38,8 +38,11 @@ export default function Navbar({ onCartClick }: NavbarProps) {
   };
 
   const handleLogOut = async () => {
-    await dispatch(logoutUser());
-    setShowUserMenu(false);
+    try {
+      await dispatch(logoutUser() as any);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   // Close user menu when clicking outside

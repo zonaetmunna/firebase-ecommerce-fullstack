@@ -2,7 +2,7 @@
 import { Dialog } from "@headlessui/react";
 
 import { useForm } from "react-hook-form";
-import Select, { ActionMeta, ValueType } from "react-select";
+import { ActionMeta, default as Select } from "react-select";
 
 interface AddProductProps {
   onClose: () => void;
@@ -64,7 +64,7 @@ export default function AddProduct({ onClose, onAdd }: AddProductProps) {
   ];
 
   const handleCategoryChange = (
-    value: ValueType<Option, false>,
+    value: Option | null,
     actionMeta: ActionMeta<Option>
   ) => {
     // Use react-hook-form setValue to set the value for the "category" field
@@ -72,7 +72,7 @@ export default function AddProduct({ onClose, onAdd }: AddProductProps) {
   };
 
   const handleColorChange = (
-    value: ValueType<Option, false>,
+    value: Option | null,
     actionMeta: ActionMeta<Option>
   ) => {
     // Use react-hook-form setValue to set the value for the "color" field
@@ -80,7 +80,7 @@ export default function AddProduct({ onClose, onAdd }: AddProductProps) {
   };
 
   const handleSizeChange = (
-    value: ValueType<Option, false>,
+    value: Option | null,
     actionMeta: ActionMeta<Option>
   ) => {
     // Use react-hook-form setValue to set the value for the "size" field

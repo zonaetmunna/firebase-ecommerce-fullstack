@@ -191,8 +191,8 @@ export const getDashboardStats = createAsyncThunk(
 
       currentOrdersSnapshot.forEach((docSnap) => {
         const order = docSnap.data() as IOrder;
-        if (order.createdAt && order.createdAt.toDate) {
-          const orderDate = order.createdAt.toDate();
+        if (order.createdAt && new Date(order.createdAt)) {
+          const orderDate = new Date(order.createdAt);
           if (orderDate >= thisMonth) {
             currentRevenue += order.totalAmount;
           }
@@ -269,7 +269,7 @@ export const getLowStockProducts = createAsyncThunk(
           currentStock: product.stock,
           reorderLevel: 10,
           status: product.stock === 0 ? "out_of_stock" : "low_stock",
-          lastRestocked: product.updatedAt || product.createdAt,
+          lastRestocked: product.updatedAt || product.createdAt || null,
         });
       });
 
@@ -476,8 +476,8 @@ const calculateMonthlyStats = (orders: IOrder[]): IMonthlySales[] => {
 
   // Process orders
   orders.forEach((order) => {
-    if (order.createdAt && order.createdAt.toDate) {
-      const orderDate = order.createdAt.toDate();
+    if (order.createdAt && new Date(order.createdAt)) {
+      const orderDate = new Date(order.createdAt);
       const monthKey = orderDate.toISOString().substring(0, 7);
 
       if (monthlyData[monthKey]) {
@@ -634,7 +634,7 @@ const adminSlice = createSlice({
       })
       // Create notification
       .addCase(createNotification.fulfilled, (state, action) => {
-        state.notifications.unshift(action.payload);
+        state.notifications.unshift(action.payload as any);
       })
       // Mark notification as read
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
